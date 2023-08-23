@@ -7,6 +7,13 @@ import (
 	"os"
 )
 
+// create a new struct type to hold the application-wide dependencies for the web application.
+// the scope of this struct is the entire application, so we define it at the top-level of the main.go file.
+type application struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
+}
+
 func main() {
 	// CLI
 	// The value of the addr flag is stored in the addr variable at runtime.
@@ -23,20 +30,18 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)                  // informational messages
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile) // error messages
 
-	mux := http.NewServeMux()
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet/view", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
+	// the app has to be a reference to the application struct type so that we can assign the loggers to the errorLog and infoLog fields.
+	// if it was a copy, the changes would not be reflected in the main function.
+	app := &application{
+		errorLog: errorLog,
+		infoLog:  infoLog,
+	}
 
 	// now, the server uses the custom errorLog logger to write log messages instead of the standard logger.
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(),
 	}
 
 	// The value returned from the flag.String() function is a pointer to the flag
