@@ -8,6 +8,7 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql" // (the blank identifier means that the package is imported for its side-effects only)
+	"snippetbox.rickyjasso.com/internal/models"
 )
 
 // create a new struct type to hold the application-wide dependencies for the web application.
@@ -15,6 +16,7 @@ import (
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -47,6 +49,7 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	// now, the server uses the custom errorLog logger to write log messages instead of the standard logger.
